@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PowerWatch Kenya — Outage Tracker</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVIGATION
+       ============================================================ -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="bolt">⚡</span>
+      <span class="brand-text">PowerWatch <em>Kenya</em></span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html"          class="nav-link active">Home</a>
+      <a href="pages/report.html"   class="nav-link">Report</a>
+      <a href="pages/outages.html"  class="nav-link">Outages</a>
+      <a href="pages/predict.html"  class="nav-link">Predict</a>
+      <a href="pages/admin.html"    class="nav-link">Admin</a>
+    </div>
+    <div class="nav-status">
+      <span class="status-dot" id="systemStatus"></span>
+      <span id="systemStatusText">Checking…</span>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+       ============================================================ -->
+  <section class="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-content">
+      <div class="hero-tag">Real-time • Kenya • Community Powered</div>
+      <h1 class="hero-title">
+        Track Power<br/>
+        <span class="accent">Outages</span><br/>
+        Near You
+      </h1>
+      <p class="hero-sub">
+        Report blackouts, see your neighbours' reports, and predict when
+        the next outage might hit your area — all in one place.
+      </p>
+      <div class="hero-cta">
+        <a href="pages/report.html"  class="btn btn-primary">⚡ Report Outage</a>
+        <a href="pages/outages.html" class="btn btn-ghost">View Live Map →</a>
+      </div>
+    </div>
+    <div class="hero-stats-panel" id="heroStats">
+      <div class="stat-card" id="stat-total">
+        <div class="stat-num">—</div>
+        <div class="stat-label">Total Reports</div>
+      </div>
+      <div class="stat-card" id="stat-active">
+        <div class="stat-num">—</div>
+        <div class="stat-label">Active Now</div>
+      </div>
+      <div class="stat-card" id="stat-resolved">
+        <div class="stat-num">—</div>
+        <div class="stat-label">Resolved</div>
+      </div>
+      <div class="stat-card" id="stat-avg">
+        <div class="stat-num">—</div>
+        <div class="stat-label">Avg Duration (h)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       HOW IT WORKS
+       ============================================================ -->
+  <section class="how-section">
+    <h2 class="section-title">How It Works</h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-icon">📍</div>
+        <div class="step-num">01</div>
+        <h3>Report</h3>
+        <p>Submit an outage report with your name, location, and time the power went out.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">🗺️</div>
+        <div class="step-num">02</div>
+        <h3>View</h3>
+        <p>Browse all active and past outage reports on the community board.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">🔮</div>
+        <div class="step-num">03</div>
+        <h3>Predict</h3>
+        <p>Our C++ algorithm analyses frequency and duration to forecast future outages.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">📱</div>
+        <div class="step-num">04</div>
+        <h3>Alert</h3>
+        <p>Receive simulated SMS alerts when high-risk conditions are detected in your area.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       LIVE FEED (latest 5 reports)
+       ============================================================ -->
+  <section class="feed-section">
+    <div class="feed-header">
+      <h2 class="section-title">Live Feed</h2>
+      <a href="pages/outages.html" class="see-all">See all →</a>
+    </div>
+    <div id="liveFeed" class="feed-list">
+      <div class="feed-loading">Loading reports…</div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       OOP INFO BANNER
+       ============================================================ -->
+  <section class="oop-section">
+    <h2 class="section-title">Powered by C++ OOP</h2>
+    <div class="oop-grid">
+      <div class="oop-card encap">
+        <div class="oop-icon">🔒</div>
+        <h3>Encapsulation</h3>
+        <p>All class attributes are <code>private</code>. Accessed only through <code>getters/setters</code>.</p>
+        <code class="code-snip">OutageReport::setLocation()</code>
+      </div>
+      <div class="oop-card inherit">
+        <div class="oop-icon">🧬</div>
+        <h3>Inheritance</h3>
+        <p><code>ResidentUser</code> and <code>AdminUser</code> both extend the <code>User</code> base class.</p>
+        <code class="code-snip">class ResidentUser : public User</code>
+      </div>
+      <div class="oop-card poly">
+        <div class="oop-icon">🎭</div>
+        <h3>Polymorphism</h3>
+        <p>Virtual <code>reportOutage()</code> and <code>predictOutage()</code> behave differently per subclass.</p>
+        <code class="code-snip">virtual void reportOutage()</code>
+      </div>
+      <div class="oop-card abstract">
+        <div class="oop-icon">🫧</div>
+        <h3>Abstraction</h3>
+        <p><code>PredictionSystem</code> is an abstract class with a pure virtual method.</p>
+        <code class="code-snip">virtual void predictOutage() = 0</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="bolt">⚡</span>
+      <span>PowerWatch Kenya — University OOP Project (C++ + Web)</span>
+      <span>Backend: C++ CGI &nbsp;|&nbsp; Classes: User, OutageReport, PredictionSystem</span>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

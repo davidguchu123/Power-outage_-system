@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Report Outage — PowerWatch Kenya</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="bolt">⚡</span>
+      <span class="brand-text">PowerWatch <em>Kenya</em></span>
+    </div>
+    <div class="nav-links">
+      <a href="../index.html"  class="nav-link">Home</a>
+      <a href="report.html"    class="nav-link active">Report</a>
+      <a href="outages.html"   class="nav-link">Outages</a>
+      <a href="predict.html"   class="nav-link">Predict</a>
+      <a href="admin.html"     class="nav-link">Admin</a>
+    </div>
+    <div class="nav-status">
+      <span class="status-dot online"></span>
+      <span>Online</span>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <h1 class="page-title">Report an <span class="accent">Outage</span></h1>
+    <p class="page-sub">
+      Fill in the form below to submit a power outage report.
+      Your report is handled by the C++ <code>ResidentUser::reportOutage()</code> method.
+    </p>
+
+    <!-- OOP NOTE BANNER -->
+    <div class="alert alert-info" style="margin-bottom:2rem;">
+      <strong>OOP in Action:</strong> Submitting this form triggers the
+      <code>ResidentUser::reportOutage()</code> override (Polymorphism + Inheritance).
+      The <code>OutageReport</code> object is constructed using Encapsulation — all
+      fields are private with setter methods.
+    </div>
+
+    <!-- REPORT FORM -->
+    <div class="form-card">
+      <div id="formMsg"></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Your Full Name</label>
+          <input type="text" id="name" placeholder="e.g. Jane Muthoni" required />
+        </div>
+        <div class="form-group">
+          <label for="userType">User Type</label>
+          <select id="userType">
+            <option value="resident">Resident</option>
+            <option value="admin">Admin / KPLC Staff</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="location">Location / Area</label>
+          <select id="location">
+            <option value="">-- Select Area --</option>
+            <option value="Nairobi CBD">Nairobi CBD</option>
+            <option value="Westlands">Westlands</option>
+            <option value="Kibera">Kibera</option>
+            <option value="Karen">Karen</option>
+            <option value="Langata">Langata</option>
+            <option value="Kasarani">Kasarani</option>
+            <option value="Ruiru">Ruiru</option>
+            <option value="Thika">Thika</option>
+            <option value="Mombasa">Mombasa</option>
+            <option value="Kisumu">Kisumu</option>
+            <option value="Nakuru">Nakuru</option>
+            <option value="Eldoret">Eldoret</option>
+            <option value="Nyeri">Nyeri</option>
+            <option value="Machakos">Machakos</option>
+            <option value="Kitui">Kitui</option>
+            <option value="Meru">Meru</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="customLocation">Or Type Custom Location</label>
+          <input type="text" id="customLocation" placeholder="e.g. Rongai, Syokimau…" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="startTime">Time Outage Started</label>
+          <input type="datetime-local" id="startTime" />
+        </div>
+        <div class="form-group">
+          <label for="duration">
+            Duration (hours) <span style="color:var(--text-dim)">— 0 if still active</span>
+          </label>
+          <input type="number" id="duration" min="0" max="72" step="0.5" value="0" />
+        </div>
+      </div>
+
+      <div class="form-group full" style="margin-top:0.25rem;">
+        <label for="notes">Additional Notes (optional)</label>
+        <textarea id="notes" rows="3" placeholder="e.g. Transformer exploded, affects 3 streets…"></textarea>
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:1.5rem; flex-wrap:wrap;">
+        <button class="btn btn-primary" id="submitBtn" onclick="submitReport()">
+          ⚡ Submit Report
+        </button>
+        <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
+      </div>
+    </div>
+
+    <!-- WHAT HAPPENS NEXT -->
+    <div class="form-card" style="background:var(--bg2);">
+      <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:1rem;">
+        What Happens After You Submit?
+      </h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+        <div>
+          <div style="font-size:1.5rem;margin-bottom:0.4rem;">🔒</div>
+          <strong style="font-size:0.85rem;">Encapsulation</strong>
+          <p style="color:var(--text-muted);font-size:0.8rem;margin-top:0.3rem;">
+            Your data is stored via private setters on the <code>OutageReport</code> class.
+          </p>
+        </div>
+        <div>
+          <div style="font-size:1.5rem;margin-bottom:0.4rem;">🧬</div>
+          <strong style="font-size:0.85rem;">Polymorphism</strong>
+          <p style="color:var(--text-muted);font-size:0.8rem;margin-top:0.3rem;">
+            The backend calls <code>reportOutage()</code> on either a <code>ResidentUser</code>
+            or <code>AdminUser</code> depending on your role.
+          </p>
+        </div>
+        <div>
+          <div style="font-size:1.5rem;margin-bottom:0.4rem;">💾</div>
+          <strong style="font-size:0.85rem;">Persistence</strong>
+          <p style="color:var(--text-muted);font-size:0.8rem;margin-top:0.3rem;">
+            Reports are serialized to <code>reports.dat</code> using file handling (no STL).
+          </p>
+        </div>
+        <div>
+          <div style="font-size:1.5rem;margin-bottom:0.4rem;">📱</div>
+          <strong style="font-size:0.85rem;">SMS Alert</strong>
+          <p style="color:var(--text-muted);font-size:0.8rem;margin-top:0.3rem;">
+            A simulated SMS is triggered if the area has a HIGH outage frequency.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SMS ALERT BOX (hidden until triggered) -->
+    <div id="smsAlertBox" style="display:none;" class="alert alert-success">
+      📱 <strong>Simulated SMS Sent:</strong> <span id="smsText"></span>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="bolt">⚡</span>
+      <span>PowerWatch Kenya — University OOP Project</span>
+    </div>
+  </footer>
+
+  <script src="../js/api.js"></script>
+  <script>
+    // Pre-fill startTime with current time
+    window.addEventListener('DOMContentLoaded', () => {
+      const now = new Date();
+      now.setSeconds(0, 0);
+      document.getElementById('startTime').value = now.toISOString().slice(0,16);
+    });
+
+    async function submitReport() {
+      const name     = document.getElementById('name').value.trim();
+      const locSel   = document.getElementById('location').value;
+      const locCust  = document.getElementById('customLocation').value.trim();
+      const location = locCust || locSel;
+      const startTime= document.getElementById('startTime').value;
+      const duration = document.getElementById('duration').value;
+      const userType = document.getElementById('userType').value;
+      const msgEl    = document.getElementById('formMsg');
+
+      // Validation
+      if (!name)     { showMsg('Please enter your name.', 'danger');    return; }
+      if (!location) { showMsg('Please select or enter a location.', 'danger'); return; }
+      if (!startTime){ showMsg('Please enter the outage start time.', 'danger'); return; }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Submitting…';
+
+      try {
+        const res = await apiAdd(name, location, startTime, userType, duration);
+
+        if (res.success) {
+          showMsg(`✅ Report submitted! Total reports: ${res.totalReports}`, 'success');
+          showToast('Report submitted successfully!', 'success');
+
+          // Check prediction and show SMS alert if HIGH risk
+          const pred = await apiPredict(location);
+          if (pred.riskLevel === 'HIGH' || pred.riskLevel === 'MEDIUM') {
+            const smsBox = document.getElementById('smsAlertBox');
+            document.getElementById('smsText').textContent = pred.smsAlert;
+            smsBox.style.display = 'block';
+            showToast(`📱 SMS: ${pred.smsAlert}`, 'info');
+          }
+
+          // Delay then reset
+          setTimeout(() => {
+            clearForm();
+            document.getElementById('smsAlertBox').style.display = 'none';
+          }, 6000);
+        } else {
+          showMsg(`❌ Error: ${res.message}`, 'danger');
+        }
+      } catch(e) {
+        showMsg('❌ Submission failed. Please try again.', 'danger');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '⚡ Submit Report';
+      }
+    }
+
+    function showMsg(text, type) {
+      const el = document.getElementById('formMsg');
+      el.innerHTML = `<div class="alert alert-${type}">${text}</div>`;
+    }
+
+    function clearForm() {
+      document.getElementById('name').value = '';
+      document.getElementById('location').value = '';
+      document.getElementById('customLocation').value = '';
+      document.getElementById('duration').value = '0';
+      document.getElementById('notes').value = '';
+      document.getElementById('formMsg').innerHTML = '';
+      const now = new Date(); now.setSeconds(0,0);
+      document.getElementById('startTime').value = now.toISOString().slice(0,16);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View Outages — PowerWatch Kenya</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="bolt">⚡</span>
+      <span class="brand-text">PowerWatch <em>Kenya</em></span>
+    </div>
+    <div class="nav-links">
+      <a href="../index.html" class="nav-link">Home</a>
+      <a href="report.html"   class="nav-link">Report</a>
+      <a href="outages.html"  class="nav-link active">Outages</a>
+      <a href="predict.html"  class="nav-link">Predict</a>
+      <a href="admin.html"    class="nav-link">Admin</a>
+    </div>
+    <div class="nav-status">
+      <span class="status-dot online"></span>
+      <span>Online</span>
+    </div>
+  </nav>
+
+  <div class="page-wrap" style="max-width:1100px;">
+    <h1 class="page-title">Outage <span class="accent">Reports</span></h1>
+    <p class="page-sub">
+      Live community reports from across Kenya. Data served from the C++
+      <code>OutageReport::displayReport()</code> system.
+    </p>
+
+    <!-- MAP SIMULATION -->
+    <div class="map-container" id="mapContainer">
+      <div class="map-grid-bg"></div>
+      <div class="map-label">🗺️ Kenya Outage Map (Simulation)</div>
+      <div id="mapPins"></div>
+
+      <!-- Static Kenya region labels for atmosphere -->
+      <div style="position:absolute;bottom:1rem;right:1rem;font-size:0.7rem;color:var(--text-dim);">
+        Simulated map — pins represent reported areas
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;align-items:center;">
+      <select id="filterStatus" onchange="applyFilters()" style="max-width:160px;">
+        <option value="">All Statuses</option>
+        <option value="active">Active Only</option>
+        <option value="resolved">Resolved Only</option>
+      </select>
+      <select id="filterLoc" onchange="applyFilters()" style="max-width:200px;">
+        <option value="">All Locations</option>
+      </select>
+      <input type="text" id="filterSearch" placeholder="Search…" oninput="applyFilters()" style="max-width:200px;" />
+      <span style="color:var(--text-muted);font-size:0.82rem;" id="countLabel"></span>
+      <button class="btn btn-ghost" style="margin-left:auto;" onclick="loadOutages()">↻ Refresh</button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap" id="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#ID</th>
+            <th>Location</th>
+            <th>Reported By</th>
+            <th>Start Time</th>
+            <th>Duration</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="reportTable">
+          <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="bolt">⚡</span>
+      <span>PowerWatch Kenya — University OOP Project</span>
+    </div>
+  </footer>
+
+  <script src="../js/api.js"></script>
+  <script>
+    // ============================================================
+    // Kenya location coordinates (normalized 0–100 for map display)
+    // ============================================================
+    const LOCATION_COORDS = {
+      'Nairobi CBD': { x: 52, y: 58 },
+      'Westlands':   { x: 49, y: 54 },
+      'Kibera':      { x: 50, y: 62 },
+      'Karen':       { x: 49, y: 65 },
+      'Langata':     { x: 51, y: 64 },
+      'Kasarani':    { x: 55, y: 52 },
+      'Ruiru':       { x: 57, y: 50 },
+      'Thika':       { x: 58, y: 48 },
+      'Mombasa':     { x: 72, y: 72 },
+      'Kisumu':      { x: 28, y: 55 },
+      'Nakuru':      { x: 38, y: 50 },
+      'Eldoret':     { x: 28, y: 40 },
+      'Nyeri':       { x: 56, y: 44 },
+      'Machakos':    { x: 58, y: 62 },
+      'Kitui':       { x: 65, y: 58 },
+      'Meru':        { x: 62, y: 44 },
+    };
+
+    let allReports = [];
+
+    async function loadOutages() {
+      const tbody = document.getElementById('reportTable');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Loading…</td></tr>';
+
+      allReports = await apiList();
+
+      // Populate location filter
+      const locSel = document.getElementById('filterLoc');
+      const locs = uniqueLocations(allReports);
+      locSel.innerHTML = '<option value="">All Locations</option>' +
+        locs.map(l => `<option value="${escHtml(l)}">${escHtml(l)}</option>`).join('');
+
+      renderMap(allReports);
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const status = document.getElementById('filterStatus').value;
+      const loc    = document.getElementById('filterLoc').value;
+      const search = document.getElementById('filterSearch').value.toLowerCase();
+
+      const filtered = allReports.filter(r => {
+        if (status && r.status !== status)                             return false;
+        if (loc    && r.location !== loc)                             return false;
+        if (search && !JSON.stringify(r).toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      document.getElementById('countLabel').textContent = `${filtered.length} report(s)`;
+      renderTable(filtered);
+    }
+
+    function renderTable(reports) {
+      const tbody = document.getElementById('reportTable');
+      if (reports.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No reports match your filters.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = reports.map(r => `
+        <tr>
+          <td style="color:var(--text-dim);font-weight:700;">#${r.id}</td>
+          <td style="font-weight:600;">${escHtml(r.location)}</td>
+          <td style="color:var(--text-muted);">${escHtml(r.reportedBy)}</td>
+          <td style="color:var(--text-muted);">${escHtml(r.startTime)}</td>
+          <td>${fmtDuration(r.duration)}</td>
+          <td>${statusBadge(r.status)}</td>
+        </tr>
+      `).join('');
+    }
+
+    /** Render outage pins on the simulated map */
+    function renderMap(reports) {
+      const container = document.getElementById('mapPins');
+      container.innerHTML = '';
+
+      // Group by location to show pin per area
+      const byLoc = {};
+      reports.forEach(r => {
+        if (!byLoc[r.location]) byLoc[r.location] = [];
+        byLoc[r.location].push(r);
+      });
+
+      Object.entries(byLoc).forEach(([loc, reps]) => {
+        const coords = LOCATION_COORDS[loc];
+        if (!coords) return;
+
+        const activeCount = reps.filter(r => r.status !== 'resolved').length;
+        const color = activeCount > 0 ? 'var(--danger)' : 'var(--success)';
+
+        const pin = document.createElement('div');
+        pin.className = 'map-pin';
+        pin.style.cssText = `left:${coords.x}%;top:${coords.y}%;color:${color};`;
+        pin.innerHTML = `
+          <div class="map-pin-dot" style="border-color:${color};box-shadow:0 0 10px ${color};"></div>
+          <div class="map-pin-label">${escHtml(loc)} (${reps.length})</div>
+        `;
+        pin.title = `${loc}: ${reps.length} report(s), ${activeCount} active`;
+        container.appendChild(pin);
+      });
+    }
+
+    function escHtml(str) {
+      if (!str && str !== 0) return '—';
+      const d = document.createElement('div');
+      d.textContent = String(str);
+      return d.innerHTML;
+    }
+
+    // Load on page ready
+    document.addEventListener('DOMContentLoaded', loadOutages);
+  </script>
+</body>
+</html>

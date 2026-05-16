@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Predict Outages — PowerWatch Kenya</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="bolt">⚡</span>
+      <span class="brand-text">PowerWatch <em>Kenya</em></span>
+    </div>
+    <div class="nav-links">
+      <a href="../index.html" class="nav-link">Home</a>
+      <a href="report.html"   class="nav-link">Report</a>
+      <a href="outages.html"  class="nav-link">Outages</a>
+      <a href="predict.html"  class="nav-link active">Predict</a>
+      <a href="admin.html"    class="nav-link">Admin</a>
+    </div>
+    <div class="nav-status">
+      <span class="status-dot online"></span>
+      <span>Online</span>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <h1 class="page-title">Outage <span class="accent">Prediction</span></h1>
+    <p class="page-sub">
+      Select an area to run the prediction algorithm implemented in C++.
+      Uses <code>SimplePrediction</code> — a derived class of the abstract
+      <code>PredictionSystem</code>.
+    </p>
+
+    <!-- OOP EXPLANATION -->
+    <div class="alert alert-info" style="margin-bottom:2rem;">
+      <strong>🫧 Abstraction + 🎭 Polymorphism:</strong> The prediction system uses an
+      <em>abstract base class</em> <code>PredictionSystem</code> with a pure virtual
+      <code>predictOutage()</code> method. <code>SimplePrediction</code> extends it and
+      provides the concrete implementation. The frontend calls the backend via the CGI API,
+      which internally uses a <code>PredictionSystem*</code> pointer to call
+      <code>predictOutage()</code> polymorphically.
+    </div>
+
+    <!-- PREDICTION FORM -->
+    <div class="form-card">
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;">
+        <div class="form-group" style="flex:1;min-width:200px;">
+          <label for="predLocation">Select Location</label>
+          <select id="predLocation">
+            <option value="">-- Choose Area --</option>
+            <option value="Nairobi CBD">Nairobi CBD</option>
+            <option value="Westlands">Westlands</option>
+            <option value="Kibera">Kibera</option>
+            <option value="Karen">Karen</option>
+            <option value="Langata">Langata</option>
+            <option value="Kasarani">Kasarani</option>
+            <option value="Mombasa">Mombasa</option>
+            <option value="Kisumu">Kisumu</option>
+            <option value="Nakuru">Nakuru</option>
+            <option value="Eldoret">Eldoret</option>
+            <option value="Nyeri">Nyeri</option>
+            <option value="Machakos">Machakos</option>
+            <option value="Ruiru">Ruiru</option>
+            <option value="Thika">Thika</option>
+            <option value="Meru">Meru</option>
+            <option value="Kitui">Kitui</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:1;min-width:200px;">
+          <label for="predCustom">Or type custom location</label>
+          <input type="text" id="predCustom" placeholder="e.g. Ongata Rongai" />
+        </div>
+        <button class="btn btn-primary" onclick="runPrediction()" id="predBtn">
+          🔮 Run Prediction
+        </button>
+      </div>
+    </div>
+
+    <!-- PREDICTION RESULT -->
+    <div id="predResult"></div>
+
+    <!-- BATCH PREDICTION (all known locations) -->
+    <div style="margin-top:3rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 class="section-title" style="margin-bottom:0;">All Locations Overview</h2>
+        <button class="btn btn-ghost" onclick="runAllPredictions()" id="allBtn">
+          Run All Predictions
+        </button>
+      </div>
+      <div id="allPredictions" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;"></div>
+    </div>
+
+    <!-- ALGORITHM EXPLAINER -->
+    <div class="form-card" style="background:var(--bg2);margin-top:3rem;">
+      <h3 style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:1.5rem;">
+        🧠 Prediction Algorithm (C++ SimplePrediction)
+      </h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+        <div>
+          <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.8;margin-bottom:1rem;">
+            The <code>SimplePrediction</code> class extends the abstract <code>PredictionSystem</code>
+            and implements a frequency-based prediction model:
+          </p>
+          <ul style="color:var(--text-muted);font-size:0.82rem;line-height:2;list-style:none;">
+            <li>📊 Count total outages in the target location</li>
+            <li>⏱️  Compute average duration of resolved outages</li>
+            <li>🔴 <strong style="color:var(--danger)">≥5 outages</strong> → HIGH risk</li>
+            <li>🟡 <strong style="color:var(--primary)">2–4 outages</strong> → MEDIUM risk</li>
+            <li>🟢 <strong style="color:var(--success)">1 outage</strong> → LOW risk</li>
+            <li>⚪ 0 outages → No history</li>
+          </ul>
+        </div>
+        <div>
+          <pre style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;font-size:0.72rem;overflow:auto;color:var(--text-muted);">
+// [ABSTRACTION] Abstract base class
+class PredictionSystem {
+public:
+  // Pure virtual = abstract method
+  virtual void predictOutage(
+    OutageReport* reports,
+    int count
+  ) = 0;
+};
+
+// [INHERITANCE + POLYMORPHISM]
+class SimplePrediction
+  : public PredictionSystem {
+public:
+  void predictOutage(
+    OutageReport* reports,
+    int count
+  ) override {
+    int freq = countInLocation(...);
+    if (freq >= 5)
+      riskLevel = "HIGH";
+    // ...
+  }
+};</pre>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="bolt">⚡</span>
+      <span>PowerWatch Kenya — University OOP Project</span>
+    </div>
+  </footer>
+
+  <script src="../js/api.js"></script>
+  <script>
+    async function runPrediction() {
+      const locSel  = document.getElementById('predLocation').value;
+      const locCust = document.getElementById('predCustom').value.trim();
+      const location = locCust || locSel;
+
+      if (!location) {
+        showToast('Please select or enter a location.', 'danger');
+        return;
+      }
+
+      const btn = document.getElementById('predBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Predicting…';
+
+      try {
+        const pred = await apiPredict(location);
+        renderPrediction(pred, document.getElementById('predResult'));
+
+        // Auto-trigger simulated SMS if HIGH or MEDIUM
+        if (pred.riskLevel === 'HIGH') {
+          showToast(`📱 SMS Alert: ${pred.smsAlert}`, 'danger');
+        } else if (pred.riskLevel === 'MEDIUM') {
+          showToast(`📱 SMS Notice: ${pred.smsAlert}`, 'info');
+        }
+      } catch(e) {
+        document.getElementById('predResult').innerHTML =
+          '<div class="alert alert-danger">Prediction failed. Please try again.</div>';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🔮 Run Prediction';
+      }
+    }
+
+    async function runAllPredictions() {
+      const btn = document.getElementById('allBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Running…';
+
+      const locations = [
+        'Nairobi CBD','Westlands','Mombasa','Kisumu','Nakuru',
+        'Eldoret','Kibera','Karen','Kasarani','Thika','Nyeri','Machakos'
+      ];
+
+      const container = document.getElementById('allPredictions');
+      container.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;">Running predictions for all areas…</div>';
+
+      const results = await Promise.all(locations.map(loc => apiPredict(loc)));
+      container.innerHTML = '';
+      results.forEach(pred => {
+        const div = document.createElement('div');
+        renderPrediction(pred, div, true);
+        container.appendChild(div);
+      });
+
+      btn.disabled = false;
+      btn.innerHTML = 'Run All Predictions';
+    }
+
+    function renderPrediction(pred, container, compact = false) {
+      const riskColors = {
+        HIGH:   'var(--danger)',
+        MEDIUM: 'var(--primary)',
+        LOW:    'var(--success)',
+        NONE:   'var(--text-dim)',
+      };
+      const riskIcons = { HIGH:'🔴', MEDIUM:'🟡', LOW:'🟢', NONE:'⚪' };
+
+      container.innerHTML = `
+        <div class="predict-result risk-${pred.riskLevel}">
+          <div class="risk-badge">${riskIcons[pred.riskLevel] || '•'} ${pred.riskLevel} RISK</div>
+          <div class="predict-location">${escHtml(pred.location)}</div>
+          ${!compact ? `
+          <div class="predict-stats">
+            <div class="predict-stat">
+              <span class="ps-label">Total Outages</span>
+              <span class="ps-val" style="color:${riskColors[pred.riskLevel]}">${pred.frequency}</span>
+            </div>
+            <div class="predict-stat">
+              <span class="ps-label">Avg Duration</span>
+              <span class="ps-val">${pred.avgDuration.toFixed(1)}h</span>
+            </div>
+          </div>
+          <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:1rem;">${escHtml(pred.message)}</p>
+          <div class="sms-box">${escHtml(pred.smsAlert)}</div>
+          ` : `
+          <div style="display:flex;gap:1rem;margin-bottom:0.75rem;">
+            <span style="font-size:0.82rem;color:var(--text-muted);">${pred.frequency} outage(s)</span>
+            <span style="font-size:0.82rem;color:var(--text-muted);">Avg ${pred.avgDuration.toFixed(1)}h</span>
+          </div>
+          <p style="color:var(--text-muted);font-size:0.8rem;">${escHtml(pred.message)}</p>
+          `}
+        </div>
+      `;
+    }
+
+    function escHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = String(str || '');
+      return d.innerHTML;
+    }
+
+    // Auto-run all on load
+    document.addEventListener('DOMContentLoaded', runAllPredictions);
+  </script>
+</body>
+</html>

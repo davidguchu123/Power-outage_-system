@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — PowerWatch Kenya</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="bolt">⚡</span>
+      <span class="brand-text">PowerWatch <em>Kenya</em></span>
+    </div>
+    <div class="nav-links">
+      <a href="../index.html" class="nav-link">Home</a>
+      <a href="report.html"   class="nav-link">Report</a>
+      <a href="outages.html"  class="nav-link">Outages</a>
+      <a href="predict.html"  class="nav-link">Predict</a>
+      <a href="admin.html"    class="nav-link active">Admin</a>
+    </div>
+    <div class="nav-status">
+      <span class="status-dot online"></span>
+      <span>Online</span>
+    </div>
+  </nav>
+
+  <div class="page-wrap" style="max-width:1100px;">
+    <h1 class="page-title"><span class="accent">Admin</span> Panel</h1>
+    <p class="page-sub">
+      AdminUser-level access. Uses <code>AdminUser::viewAllReports()</code> and
+      <code>AdminUser::resolveReport()</code> — demonstrating Inheritance and
+      Polymorphism over the base <code>User</code> class.
+    </p>
+
+    <div class="alert alert-warn" style="margin-bottom:2rem;">
+      <strong>🧬 Inheritance Demo:</strong> <code>AdminUser</code> extends <code>User</code>
+      and overrides <code>reportOutage()</code> to tag reports as "confirmed".
+      It also adds exclusive methods: <code>viewAllReports()</code> and <code>resolveReport()</code>
+      — not available to <code>ResidentUser</code>.
+    </div>
+
+    <!-- STATS GRID -->
+    <div class="admin-grid" style="margin-bottom:2rem;">
+      <div class="admin-card">
+        <h3>📊 System Statistics</h3>
+        <div id="adminStats" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="stat-card"><div class="stat-num" id="as-total">—</div><div class="stat-label">Total Reports</div></div>
+          <div class="stat-card"><div class="stat-num" id="as-active">—</div><div class="stat-label">Active</div></div>
+          <div class="stat-card"><div class="stat-num" id="as-resolved">—</div><div class="stat-label">Resolved</div></div>
+          <div class="stat-card"><div class="stat-num" id="as-avg">—</div><div class="stat-label">Avg Hours</div></div>
+        </div>
+      </div>
+      <div class="admin-card">
+        <h3>⚡ Admin Actions</h3>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          <div>
+            <label>Resolve Report by ID</label>
+            <div style="display:flex;gap:0.5rem;margin-top:0.4rem;">
+              <input type="number" id="resolveId" placeholder="Report #" style="width:100px;" />
+              <input type="number" id="resolveDur" placeholder="Duration (h)" step="0.5" style="width:130px;" />
+              <button class="btn btn-success" onclick="resolveReport()">Resolve</button>
+            </div>
+          </div>
+          <hr style="border-color:var(--border);margin:0.5rem 0;" />
+          <div>
+            <label>Submit Admin Report</label>
+            <div style="display:flex;gap:0.5rem;margin-top:0.4rem;flex-wrap:wrap;">
+              <input type="text" id="adminName"     placeholder="Your name"    style="flex:1;min-width:120px;" />
+              <input type="text" id="adminLocation" placeholder="Location"     style="flex:1;min-width:120px;" />
+              <button class="btn btn-primary" onclick="adminReport()">Submit (Admin)</button>
+            </div>
+          </div>
+          <div id="adminMsg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL REPORTS TABLE -->
+    <h2 class="section-title">All Reports</h2>
+    <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
+      <button class="btn btn-ghost" onclick="loadAdminReports()">↻ Refresh</button>
+      <input type="text" id="adminSearch" placeholder="Search reports…"
+             oninput="adminFilter()" style="max-width:250px;" />
+      <select id="adminStatusFilter" onchange="adminFilter()" style="max-width:160px;">
+        <option value="">All Statuses</option>
+        <option value="active">Active</option>
+        <option value="resolved">Resolved</option>
+        <option value="confirmed">Confirmed</option>
+      </select>
+      <span id="adminCount" style="color:var(--text-muted);font-size:0.82rem;margin-left:auto;"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#ID</th>
+            <th>Location</th>
+            <th>Reported By</th>
+            <th>Start Time</th>
+            <th>Duration</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="adminTable">
+          <tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- OOP CLASS DIAGRAM (ASCII art) -->
+    <div class="form-card" style="background:var(--bg2);margin-top:3rem;">
+      <h3 style="font-family:var(--font-display);font-weight:700;color:var(--primary);margin-bottom:1rem;font-size:1rem;">
+        🧬 C++ Class Hierarchy Diagram
+      </h3>
+      <pre style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;font-size:0.72rem;overflow:auto;color:var(--text-muted);line-height:1.8;">
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     PowerWatch Kenya — OOP Class Diagram                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  [ENCAPSULATION]                    [ABSTRACTION]
+  ┌─────────────────┐                ┌──────────────────────────┐
+  │   OutageReport  │                │  &lt;&lt;abstract&gt;&gt;             │
+  ├─────────────────┤                │    PredictionSystem      │
+  │ -location       │                ├──────────────────────────┤
+  │ -reportedBy     │                │ +setTargetLocation()     │
+  │ -startTime      │                │ +predictOutage() = 0     │  ← pure virtual
+  │ -duration       │                └──────────────┬───────────┘
+  │ -status         │                               │  [INHERITANCE]
+  │ -reportId       │                ┌──────────────▼───────────┐
+  ├─────────────────┤                │    SimplePrediction      │
+  │ +setLocation()  │◄──uses         ├──────────────────────────┤
+  │ +getLocation()  │                │ -countOutages()          │
+  │ +displayReport()│                │ -avgDuration()           │
+  │ +serialize()    │                │ +predictOutage()  ◄──────┼── [POLYMORPHISM]
+  │ +deserialize()  │                │ +predictOutageJSON()     │     (override)
+  └─────────────────┘                └──────────────────────────┘
+
+
+  [INHERITANCE + POLYMORPHISM]
+  ┌─────────────────────┐
+  │        User         │  ← Base Class
+  ├─────────────────────┤
+  │ -name               │  ← private (ENCAPSULATION)
+  │ -location           │
+  │ -userType           │
+  ├─────────────────────┤
+  │ +setName()          │
+  │ +setLocation()      │
+  │ +reportOutage() ←───┼─── virtual (POLYMORPHISM)
+  └──────────┬──────────┘
+             │
+    ┌────────┴────────┐
+    │                 │
+┌───▼──────────┐  ┌───▼──────────────┐
+│ ResidentUser │  │    AdminUser     │   [INHERITANCE]
+├──────────────┤  ├──────────────────┤
+│              │  │                  │
+├──────────────┤  ├──────────────────┤
+│+reportOutage │  │ +reportOutage()  │  ← POLYMORPHISM (override)
+│  (override)  │  │ +viewAllReports()│  ← Admin-only method
+└──────────────┘  │ +resolveReport() │  ← Admin-only method
+                  └──────────────────┘
+</pre>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="bolt">⚡</span>
+      <span>PowerWatch Kenya — University OOP Project</span>
+    </div>
+  </footer>
+
+  <script src="../js/api.js"></script>
+  <script>
+    let adminAllReports = [];
+
+    async function loadAdminReports() {
+      const tbody = document.getElementById('adminTable');
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Loading…</td></tr>';
+
+      // Load stats
+      const stats = await apiStats();
+      document.getElementById('as-total').textContent    = stats.totalReports;
+      document.getElementById('as-active').textContent   = stats.activeOutages;
+      document.getElementById('as-resolved').textContent = stats.resolvedCount;
+      document.getElementById('as-avg').textContent      = stats.avgDuration.toFixed(1);
+
+      adminAllReports = await apiList();
+      adminFilter();
+    }
+
+    function adminFilter() {
+      const search = document.getElementById('adminSearch').value.toLowerCase();
+      const status = document.getElementById('adminStatusFilter').value;
+
+      const filtered = adminAllReports.filter(r => {
+        if (status && r.status !== status) return false;
+        if (search && !JSON.stringify(r).toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      document.getElementById('adminCount').textContent = `${filtered.length} report(s)`;
+      renderAdminTable(filtered);
+    }
+
+    function renderAdminTable(reports) {
+      const tbody = document.getElementById('adminTable');
+      if (reports.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">No reports found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = reports.map(r => `
+        <tr>
+          <td style="color:var(--text-dim);font-weight:700;">#${r.id}</td>
+          <td style="font-weight:600;">${esc(r.location)}</td>
+          <td style="color:var(--text-muted);">${esc(r.reportedBy)}</td>
+          <td style="color:var(--text-muted);">${esc(r.startTime)}</td>
+          <td>${fmtDuration(r.duration)}</td>
+          <td>${statusBadge(r.status)}</td>
+          <td>
+            ${r.status !== 'resolved' ? `
+              <button class="btn btn-ghost" style="padding:0.25rem 0.6rem;font-size:0.75rem;"
+                onclick="quickResolve(${r.id})">Resolve</button>
+            ` : '<span style="color:var(--text-dim);font-size:0.78rem;">—</span>'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function quickResolve(id) {
+      const dur = prompt(`Enter duration in hours for Report #${id}:`);
+      if (dur === null) return;
+      const d = parseFloat(dur) || 0;
+      const res = await apiResolve(id, d);
+      if (res.success) {
+        showToast(`Report #${id} marked resolved.`, 'success');
+        loadAdminReports();
+      } else {
+        showToast(`Error: ${res.message}`, 'danger');
+      }
+    }
+
+    async function resolveReport() {
+      const id  = document.getElementById('resolveId').value;
+      const dur = document.getElementById('resolveDur').value;
+      if (!id) { showToast('Enter a report ID.', 'danger'); return; }
+      const res = await apiResolve(id, dur || 0);
+      if (res.success) {
+        showToast(`Report #${id} resolved.`, 'success');
+        document.getElementById('resolveId').value  = '';
+        document.getElementById('resolveDur').value = '';
+        loadAdminReports();
+      } else {
+        showToast(`Error: ${res.message}`, 'danger');
+      }
+    }
+
+    async function adminReport() {
+      const name = document.getElementById('adminName').value.trim();
+      const loc  = document.getElementById('adminLocation').value.trim();
+      if (!name || !loc) { showToast('Enter name and location.', 'danger'); return; }
+
+      const now = new Date(); now.setSeconds(0,0);
+      const startTime = now.toISOString().slice(0,16).replace('T',' ');
+
+      const res = await apiAdd(name, loc, startTime, 'admin');
+      if (res.success) {
+        showToast('Admin report submitted (status: confirmed).', 'success');
+        document.getElementById('adminName').value     = '';
+        document.getElementById('adminLocation').value = '';
+        loadAdminReports();
+      } else {
+        showToast(`Error: ${res.message}`, 'danger');
+      }
+    }
+
+    function esc(str) {
+      const d = document.createElement('div');
+      d.textContent = String(str || '');
+      return d.innerHTML;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadAdminReports);
+  </script>
+</body>
+</html>
